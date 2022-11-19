@@ -1,9 +1,10 @@
 from django.urls import path
-from rest_framework_simplejwt import views as jwt_views
-# from car.views import UserRegisterView
-from .views import UserRegisterView
+
+from . import views
+from .views import UserRegisterView, UserLoginView, GetUserInfor
 
 urlpatterns = [
     path('register', UserRegisterView.as_view(), name='register'),
-    path('login', jwt_views.TokenObtainPairView.as_view(), name='login'),
+    path('login', UserLoginView.as_view(), name='login'),
+    path('get-user-infor', GetUserInfor.as_view())
 ]
