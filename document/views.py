@@ -23,10 +23,4 @@ class createDocument(APIView):
     permission_classes = [IsAuthenticated, ]
 
     def post(self, request):
-        print(request.data)
-        print(request.user)
-        print(request.user.userName,
-              request.user.userNameDisplay, request.user.password)
-        print(request.auth)
-        print(self)
         return Response('asdjf;l')

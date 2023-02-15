@@ -50,6 +50,8 @@ class UserLoginView(APIView):
             if user:
                 refresh = TokenObtainPairSerializer.get_token(user)
                 data = {
+                    'message':'200_OK',
+                    'status':status.HTTP_200_OK,
                     'userInfo': {
                         'userName': user.userName,
                         'userNameDisplay': user.userNameDisplay,
