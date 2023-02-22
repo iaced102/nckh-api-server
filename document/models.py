@@ -8,14 +8,20 @@ class Document(models.Model):
     host = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, related_name='host')
     classId = models.CharField(max_length=25)
-    subject = models.ForeignKey(
-        Subject, on_delete=models.DO_NOTHING, related_name='subject')
+    #subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING, related_name='subject')
 
 
 class SubTaskDocument(models.Model):
     field = models.CharField(max_length=20)
+    # field
+    # title tuong ung voi headerName
     title = models.CharField(max_length=50)
-    student = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='student')
+    # userName Display
+    # student = models.ForeignKey(
+    #     User, on_delete=models.CASCADE, related_name='student')
+    student = models.CharField(max_length=100,default="")
+    # thuoc ve docuemnt nao
     owner = models.ForeignKey(
         Document, related_name='owner', on_delete=models.CASCADE)
+    value = models.CharField(max_length=50,default="")
+
