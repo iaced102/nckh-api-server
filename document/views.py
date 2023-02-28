@@ -8,9 +8,12 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from .serializers import DocumentSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from account.models import User
+from account.models import User,createAccount
 from document.models import Document,SubTaskDocument
 from rest_framework import permissions
+from django.db.models import Q
+from django.http import JsonResponse
+from .serializers import DocumentSerializer, SubTaskDocumentSerializer
 
 
 from rest_framework.views import APIView
@@ -22,6 +25,32 @@ from rest_framework.authentication import SessionAuthentication
 #     def enforce_csrf(self, request):
 #         pass
 
+class getListDocumentForUser(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self, request):
+        user = User.objects.get(userName=request.user)
+        is_staff = request.user.is_staff
+        print(user.is_staff)
+        if is_staff:
+            subDocument = Document.objects.filter( sharePermission__in=['staff_only', 'all'])
+        else:
+            subDocument = Document.objects.filter( sharePermission='all')
+        # check xem thằng user này có phải là staff hay không
+        #nếu thằng này là staff thì sẽ lấy host_id=user, perrmission = staffonly, permission = all
+        # nếu thằng này không phải staff thì sẽ lấy host_id = user permission = all 
+        document = Document.objects.filter(host_id=user)
+        #   
+        data = []
+        print(subDocument)
+        for doc in DocumentSerializer(document, many=True).data:
+            print(doc)
+            data.append(doc)
+        for doc in DocumentSerializer(subDocument, many=True).data:
+            data.append(doc)
+        return JsonResponse({
+                'data': data,
+            }, status=status.HTTP_200_OK)
+        # return Response('abc abc')
 
 class createDocument(APIView):
     permission_classes = [IsAuthenticated, ]
@@ -29,7 +58,9 @@ class createDocument(APIView):
     def post(self, request):
         # get user by userName = request.user
         user = User.objects.get(userName=request.user)
-        document =Document.objects.create(host=user,classId=request.data["classId"])
+
+        
+        document =Document.objects.create(host=user,classId=request.data["classId"],sharePermission =request.data["sharePermission"])
         document.save()
         for col in request.data['columnDefs']:
             field = col["field"]
@@ -45,22 +76,25 @@ class createDocument(APIView):
         list = SubTaskDocument.objects.all()
         print(list)
         return Response('asdjf;l')
-        #tự động tạo tài khoản cho sinh viên trong ds mk gửi lên nếu chưa có (uername = msv , userndis = userndis)
-        #istaff = fall , 
-    # def get_object(self):
-    #     obj = get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
-    #     self.check_object_permissions(self.request, obj)
-    #     return obj
-# class SubscriberViewSet(ModelViewSet):
-#     serializer_class = SubscriberSerializer
-#     queryset = Subscriber.objects.all()
-#     permission_classes = (IsAuthenticated,)
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
-        if request.method in permissions.SAFE_METHODS:
-            return True
-
-        # Instance must have an attribute named `owner`.
-        return obj.owner == request.user
+# req 2:
+# viết 1 api get detail của 1 cái doc
+#api gửi đi phải có docID
+# từ cái model subtaskdocument, lấy tất cả các bản ghi có owner_id = docID
+# trả về cái thông tin của doc đó get(id=docID)
+class detailDocument(APIView):
+    def get(self,request,doc_id):
+        document = Document.objects.get(id=doc_id)
+        print(doc_id)
+        sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
+        print(sub_task_documents)    
+        serializer = DocumentSerializer(document)
+        # return Response(serializer.data)
+        # return Response(sub_task_documents)
+        return JsonResponse({
+            "info": serializer.data,
+            "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data
+        },status=status.HTTP_200_OK)
+        # serializer = SubTaskDocumentSerializer(SubTaskDocument)
+        # return Response(serializer.data)
+#tự động tạo tài khoản cho sinh viên trong ds mk gửi lên nếu chưa có (username = msv , usernamedis = userndis)
+#istaff = false , 

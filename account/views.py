@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .serializers import UserSerializer, UserLoginSerializer
+from document.views import User
 
 from rest_framework.authtoken.models import Token
 
@@ -82,3 +83,10 @@ class GetUserInfor(APIView):
             'view': {'request': request},
             'error_code': 200
         }, status=status.HTTP_200_OK)
+#tự động tạo tài khoản cho sinh viên trong ds mk gửi lên nếu chưa có (username = msv , usernamedis = userndis)
+#istaff = false , 
+# class creatAccount(APIView):
+#     def post(self,request):
+#         if not User.objects.filter(userName=id).exists():
+#             user = User.objects.create_user(id, password='1')
+#             user.save()
