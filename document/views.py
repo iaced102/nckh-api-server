@@ -43,8 +43,13 @@ class getListDocumentForUser(APIView):
         data = []
         print(subDocument)
         for doc in DocumentSerializer(document, many=True).data:
-            print(doc)
-            data.append(doc)
+            cloneDoc = doc
+            # cloneDoc.hostName = doc.host.userNameDisplay
+            print(doc["host"])
+            host = User.objects.get(id=doc["host"])
+            print(host.userNameDisplay)
+            cloneDoc["hostName"] = host.userNameDisplay
+            data.append(cloneDoc)
         for doc in DocumentSerializer(subDocument, many=True).data:
             data.append(doc)
         return JsonResponse({
