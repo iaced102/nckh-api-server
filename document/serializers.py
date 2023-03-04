@@ -5,7 +5,7 @@ from .models import Document, SubTaskDocument
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
-        fields = ['host', 'classId']
+        fields = ['host', 'classId', 'id']
 
 
 class SubTaskDocumentSerializer(serializers.ModelSerializer):
