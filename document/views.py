@@ -66,9 +66,9 @@ class createDocument(APIView):
             field = col["field"]
             headerName= col["headerName"]
 
-            if field != 'userNameDisplay':
+            if field != 'id':
                 for data in request.data["rawData"]:
-                    student = data["userNameDisplay"]
+                    student = data["id"]
                     value = data[field]
                     print(value)    
                     subtask = SubTaskDocument.objects.create(field = field,title = headerName,student = student,owner = document,value = value)
@@ -84,17 +84,39 @@ class createDocument(APIView):
 class detailDocument(APIView):
     def get(self,request,doc_id):
         document = Document.objects.get(id=doc_id)
-        print(doc_id)
         sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
-        print(sub_task_documents)    
         serializer = DocumentSerializer(document)
-        # return Response(serializer.data)
-        # return Response(sub_task_documents)
+        columnDefField = []
+        columnDef = [{"field":"student","headerName":"Ma Sinh Vien"}]
+        subTaskDoc = SubTaskDocumentSerializer(sub_task_documents, many=True).data
+        for task in subTaskDoc:
+            if task["field"] not in columnDefField:
+                columnDefField.append(task["field"])
+                columnDef.append({"field":task["field"],"headerName":task["title"]})
+        ID = []
+        rawData = []
+        for task in subTaskDoc:
+            if task["student"] not in ID:
+                ID.append(task["student"])
+                rawData.append({"ID":task["student"], task["field"]:task["value"]})
+                
+            else:
+                index = ID.index(task["student"])
+                rawData[index][task["field"]]= task["value"]
         return JsonResponse({
             "info": serializer.data,
+            "columnDefs":columnDef,
+            "rawData":rawData,
             "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data
         },status=status.HTTP_200_OK)
-        # serializer = SubTaskDocumentSerializer(SubTaskDocument)
-        # return Response(serializer.data)
-#tự động tạo tài khoản cho sinh viên trong ds mk gửi lên nếu chưa có (username = msv , usernamedis = userndis)
-#istaff = false , 
+
+
+class EditDocument(APIView):
+    def put(self, request, doc_id):
+        document = Document.objects.get(id=doc_id)
+        sub_task_documents = SubTaskDocument.objects.get(id=doc_id)
+        serializer = DocumentSerializer(document)
+        return JsonResponse({
+            "status":"oke",
+            "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data
+        },status=status.HTTP_200_OK)

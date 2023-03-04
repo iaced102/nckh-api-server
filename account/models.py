@@ -63,5 +63,5 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 def createAccount(userName,userNameDisplay):
     if not User.objects.filter(userName=userName).exists():
-        user = User.objects.create_user(userName, password='1')
+        user = User.objects.create_user(userName, password='1',userNameDisplay=userNameDisplay)
         user.save()
