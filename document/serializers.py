@@ -11,4 +11,4 @@ class DocumentSerializer(serializers.ModelSerializer):
 class SubTaskDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubTaskDocument
-        fields = ['field', 'title', 'student', 'owner']
+        fields = ['field', 'title', 'student', 'owner','value']
