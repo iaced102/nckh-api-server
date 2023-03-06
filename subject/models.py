@@ -6,4 +6,5 @@ import jsonfield
 class Subject(models.Model):
     name = models.CharField(max_length=60)
     description = models.TextField()
-    customField = jsonfield.JSONField()
+    customField = jsonfield.JSONField(),
+    subjectId = models.CharField(max_length=20)

@@ -5,6 +5,7 @@ from .views import createDocument,getListDocumentForUser,detailDocument,EditDocu
 urlpatterns = [
     path('create', createDocument.as_view(), name='document-create'),
     path('getList',getListDocumentForUser.as_view(), name='document-list'),
-    path('document/<int:doc_id>',detailDocument.as_view(), name='document-detail'),
     path('document/edit/<int:doc_id>',EditDocument.as_view(), name='document-edit'),
+    path('document/<int:doc_id>',detailDocument.as_view(), name='document-detail'),
+    
 ]

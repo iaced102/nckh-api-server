@@ -114,9 +114,30 @@ class detailDocument(APIView):
 class EditDocument(APIView):
     def put(self, request, doc_id):
         document = Document.objects.get(id=doc_id)
-        sub_task_documents = SubTaskDocument.objects.get(id=doc_id)
-        serializer = DocumentSerializer(document)
+        host = DocumentSerializer(document).data["host"]
+        print(host)
+        print(request.user.id)
+        if host != request.user.id:
+            return JsonResponse({
+            "message": "permission denied"
+        },status=status.HTTP_400_BAD_REQUEST)
+        sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
+        sub_task_serializer = SubTaskDocumentSerializer(sub_task_documents, many=True)
+        sub_task_data = sub_task_serializer.data
+        for sub_task in sub_task_documents:
+            sub_task.delete()
+        for col in request.data['columnDefs']:
+            field = col["field"]
+            headerName= col["headerName"]
+
+            if field != 'id':
+                for data in request.data["rawData"]:
+                    student = data["id"]
+                    value = data[field]
+                    print(value)    
+                    subtask = SubTaskDocument.objects.create(field = field,title = headerName,student = student,owner = document,value = value)
+                    subtask.save()
         return JsonResponse({
             "status":"oke",
-            "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data
+            "message": f"Deleted {len(sub_task_data)} subtasks for document with id {doc_id}."
         },status=status.HTTP_200_OK)
