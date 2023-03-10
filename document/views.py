@@ -139,7 +139,7 @@ class EditDocument(APIView):
         sub_task_data = sub_task_serializer.data
         for sub_task in sub_task_documents:
             sub_task.delete()
-        for col in request.data['columnDefs']:
+        for col in request.PUT.get('columnDefs', False):
             field = col["field"]
             headerName= col["headerName"]
 
