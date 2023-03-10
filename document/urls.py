@@ -7,4 +7,6 @@ urlpatterns = [
     path('getList',getListDocumentForUser.as_view(), name='document-list'),
     path('detail/<int:doc_id>',detailDocument.as_view(), name='document-detail'),
     path('document/edit/<int:doc_id>',EditDocument.as_view(), name='document-edit'),
+    path('document/<int:doc_id>',detailDocument.as_view(), name='document-detail'),
+    
 ]

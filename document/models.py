@@ -10,7 +10,6 @@ class Document(models.Model):
     classId = models.CharField(max_length=25)
     sharePermission = models.CharField(max_length=15,default = "onlyMe")
     subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING, related_name='subject', null=True)
-    
 
 
 class SubTaskDocument(models.Model):
