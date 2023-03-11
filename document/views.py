@@ -40,26 +40,26 @@ class getListDocumentForUser(APIView):
         # nếu thằng này không phải staff thì sẽ lấy host_id = user permission = all 
         document = Document.objects.filter(host_id=user)
         #   
+        id = []
         data = []
         print(subDocument)
         for doc in DocumentSerializer(document, many=True).data:
-            cloneDoc = doc
-            # cloneDoc.hostName = doc.host.userNameDisplay
-            print(doc["host"])
-            host = User.objects.get(id=doc["host"])
-            print(host.userNameDisplay)
-            cloneDoc["userName"] = host.userName
-            cloneDoc["hostName"] = host.userNameDisplay
-            data.append(cloneDoc)
+            print(doc['id'])
+            if doc['id'] not in id:
+                id.append(doc['id'])
+                cloneDoc = doc
+                host = User.objects.get(id=doc["host"])
+                cloneDoc["userName"] = host.userName
+                cloneDoc["hostName"] = host.userNameDisplay
+                data.append(cloneDoc)
         for doc in DocumentSerializer(subDocument, many=True).data:
-            cloneDoc = doc
-            # cloneDoc.hostName = doc.host.userNameDisplay
-            print(doc["host"])
-            host = User.objects.get(id=doc["host"])
-            print(host.userNameDisplay)
-            cloneDoc["userName"] = host.userName
-            cloneDoc["hostName"] = host.userNameDisplay
-            data.append(cloneDoc)
+            if doc['id'] not in id:
+                id.append(doc['id'])
+                cloneDoc = doc
+                host = User.objects.get(id=doc["host"])
+                cloneDoc["userName"] = host.userName
+                cloneDoc["hostName"] = host.userNameDisplay
+                data.append(cloneDoc)
         return JsonResponse({
                 'data': data,
             }, status=status.HTTP_200_OK)
@@ -71,10 +71,10 @@ class createDocument(APIView):
     def post(self, request):
         # get user by userName = request.user
         user = User.objects.get(userName=request.user)
-
-        
-        document =Document.objects.create(host=user,classId=request.data["classId"],sharePermission =request.data["sharePermission"])
+        print(user)
+        document =Document.objects.create(host=user,sharePermission ='onlyMe')
         document.save()
+        print(request.data['columnDefs'])
         for col in request.data['columnDefs']:
             field = col["field"]
             headerName= col["headerName"]
@@ -100,7 +100,7 @@ class detailDocument(APIView):
         sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
         serializer = DocumentSerializer(document)
         columnDefField = []
-        columnDef = [{"field":"student","headerName":"Ma Sinh Vien"}]
+        columnDef = [{"field":"id","headerName":"Ma Sinh Vien"}]
         subTaskDoc = SubTaskDocumentSerializer(sub_task_documents, many=True).data
         for task in subTaskDoc:
             if task["field"] not in columnDefField:
@@ -111,7 +111,7 @@ class detailDocument(APIView):
         for task in subTaskDoc:
             if task["student"] not in ID:
                 ID.append(task["student"])
-                rawData.append({"ID":task["student"], task["field"]:task["value"]})
+                rawData.append({"id":task["student"], task["field"]:task["value"]})
                 
             else:
                 index = ID.index(task["student"])
@@ -128,8 +128,6 @@ class EditDocument(APIView):
     def put(self, request, doc_id):
         document = Document.objects.get(id=doc_id)
         host = DocumentSerializer(document).data["host"]
-        print(host)
-        print(request.user.id)
         if host != request.user.id:
             return JsonResponse({
             "message": "permission denied"
@@ -139,12 +137,13 @@ class EditDocument(APIView):
         sub_task_data = sub_task_serializer.data
         for sub_task in sub_task_documents:
             sub_task.delete()
-        for col in request.PUT.get('columnDefs', False):
+        for col in request.data['columnDefs']:
             field = col["field"]
             headerName= col["headerName"]
 
             if field != 'id':
                 for data in request.data["rawData"]:
+                    print(data)
                     student = data["id"]
                     value = data[field]
                     print(value)    
