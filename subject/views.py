@@ -10,11 +10,19 @@ from django.shortcuts import render
 #     - lặp qua serializer đó rồi append vào result rồi response cái result đấy về
 from rest_framework.views import APIView
 from .models import Subject
-from .serializers import SubjectSerializer
+from .serializers import SubjectSerializer,SubjectCreateSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
 
+
+class SubjectCreate(APIView):
+    def post(self, request):
+        serializer = SubjectCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response('', status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class SubjectSearch(APIView):
     def get(self,request):
         keyword = request.query_params.get('keyword')
@@ -26,7 +34,9 @@ class SubjectSearch(APIView):
         else:
            queryset = Subject.objects.all()
         serializer = SubjectSerializer(queryset, many=True)
-        return Response(serializer.data)
-# em quên mất cách viết đoạn này r : 
-#   lặp qua serializer đó rồi append vào result rồi response cái result đấy về
+        result = []
+        for data in serializer.data:
+           result.append(data)
+        return Response(result)
+
 
