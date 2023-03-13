@@ -71,8 +71,14 @@ class createDocument(APIView):
     def post(self, request):
         # get user by userName = request.user
         user = User.objects.get(userName=request.user)
+<<<<<<< HEAD
         print(user)
         document =Document.objects.create(host=user,sharePermission ='onlyMe')
+=======
+
+        
+        document =Document.objects.create(host=user,sharePermission ="onlyMe")
+>>>>>>> aa7857daf33ca167a2c2ae472e8a88d74321f433
         document.save()
         print(request.data['columnDefs'])
         for col in request.data['columnDefs']:
