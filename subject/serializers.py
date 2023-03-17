@@ -5,3 +5,7 @@ class SubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subject
         fields = ['name','description','customField','subjectId']
+class SubjectCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subject
+        fields = ['name','description','customField','subjectId']

@@ -73,7 +73,7 @@ class createDocument(APIView):
         user = User.objects.get(userName=request.user)
 
         
-        document =Document.objects.create(host=user,classId=request.data["classId"],sharePermission =request.data["sharePermission"])
+        document =Document.objects.create(host=user,sharePermission ="onlyMe")
         document.save()
         for col in request.data['columnDefs']:
             field = col["field"]

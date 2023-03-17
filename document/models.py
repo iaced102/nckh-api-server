@@ -9,6 +9,7 @@ class Document(models.Model):
         User, on_delete=models.DO_NOTHING, related_name='host')
     classId = models.CharField(max_length=25)
     sharePermission = models.CharField(max_length=15,default = "onlyMe")
+    columnDefs = models.TextField()
     subject = models.ForeignKey(Subject, on_delete=models.DO_NOTHING, related_name='subject', null=True)
 
 
