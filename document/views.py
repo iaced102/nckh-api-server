@@ -1,4 +1,5 @@
 from django.shortcuts import render
+import json
 from rest_framework.decorators import api_view
 from rest_framework.decorators import authentication_classes
 from rest_framework.decorators import api_view
@@ -44,13 +45,13 @@ class getListDocumentForUser(APIView):
         data = []
         print(subDocument)
         for doc in DocumentSerializer(document, many=True).data:
-            print(doc['id'])
             if doc['id'] not in id:
                 id.append(doc['id'])
                 cloneDoc = doc
                 host = User.objects.get(id=doc["host"])
                 cloneDoc["userName"] = host.userName
                 cloneDoc["hostName"] = host.userNameDisplay
+                cloneDoc.pop('columnDefs')
                 data.append(cloneDoc)
         for doc in DocumentSerializer(subDocument, many=True).data:
             if doc['id'] not in id:
@@ -59,6 +60,7 @@ class getListDocumentForUser(APIView):
                 host = User.objects.get(id=doc["host"])
                 cloneDoc["userName"] = host.userName
                 cloneDoc["hostName"] = host.userNameDisplay
+                cloneDoc.pop('columnDefs')
                 data.append(cloneDoc)
         return JsonResponse({
                 'data': data,
@@ -71,57 +73,26 @@ class createDocument(APIView):
     def post(self, request):
         # get user by userName = request.user
         user = User.objects.get(userName=request.user)
-        print(user)
-        document =Document.objects.create(host=user,sharePermission ='onlyMe')
-
-        
-        document =Document.objects.create(host=user,sharePermission ="onlyMe")
+        document =Document.objects.create(host=user,sharePermission ='onlyMe', columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}')
         document.save()
-        print(request.data['columnDefs'])
-        for col in request.data['columnDefs']:
-            field = col["field"]
-            headerName= col["headerName"]
-
-            if field != 'id':
-                for data in request.data["rawData"]:
-                    student = data["id"]
-                    value = data[field]
-                    print(value)    
-                    subtask = SubTaskDocument.objects.create(field = field,title = headerName,student = student,owner = document,value = value)
-                    subtask.save()
-        list = SubTaskDocument.objects.all()
-        print(list)
+        for col in request.data['rawData']:
+            createAccount(col["id"], col["userNameDisplay"])
+            user = User.objects.get(userName=col["id"])
+            subTask = SubTaskDocument.objects.create(student = user, owner = document, value = col)
         return Response('asdjf;l')
-# req 2:
-# viết 1 api get detail của 1 cái doc
-#api gửi đi phải có docID
-# từ cái model subtaskdocument, lấy tất cả các bản ghi có owner_id = docID
-# trả về cái thông tin của doc đó get(id=docID)
 class detailDocument(APIView):
     def get(self,request,doc_id):
         document = Document.objects.get(id=doc_id)
         sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
         serializer = DocumentSerializer(document)
-        columnDefField = []
-        columnDef = [{"field":"id","headerName":"Ma Sinh Vien"}]
+        columnDef = json.loads(serializer.data["columnDefs"].replace("'",'"'))
         subTaskDoc = SubTaskDocumentSerializer(sub_task_documents, many=True).data
-        for task in subTaskDoc:
-            if task["field"] not in columnDefField:
-                columnDefField.append(task["field"])
-                columnDef.append({"field":task["field"],"headerName":task["title"]})
-        ID = []
         rawData = []
         for task in subTaskDoc:
-            if task["student"] not in ID:
-                ID.append(task["student"])
-                rawData.append({"id":task["student"], task["field"]:task["value"]})
-                
-            else:
-                index = ID.index(task["student"])
-                rawData[index][task["field"]]= task["value"]
+            rawData.append(json.loads(task['value'].replace("'",'"')))
         return JsonResponse({
             "info": serializer.data,
-            "columnDefs":columnDef,
+            "columnDefs":columnDef['columnDefs'],
             "rawData":rawData,
             "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data
         },status=status.HTTP_200_OK)
