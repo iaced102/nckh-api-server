@@ -73,7 +73,7 @@ class createDocument(APIView):
     def post(self, request):
         # get user by userName = request.user
         user = User.objects.get(userName=request.user)
-        document =Document.objects.create(host=user,sharePermission ='onlyMe', columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}')
+        document =Document.objects.create(host=user,sharePermission ='onlyMe', columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}',classId = request.data.get('classId'))
         document.save()
         for col in request.data['rawData']:
             createAccount(col["id"], col["userNameDisplay"])
