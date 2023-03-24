@@ -43,7 +43,6 @@ class getListDocumentForUser(APIView):
         #   
         id = []
         data = []
-        print(subDocument)
         for doc in DocumentSerializer(document, many=True).data:
             if doc['id'] not in id:
                 id.append(doc['id'])
