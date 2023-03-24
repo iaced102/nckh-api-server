@@ -87,8 +87,11 @@ class detailDocument(APIView):
         columnDef = json.loads(serializer.data["columnDefs"].replace("'",'"'))
         subTaskDoc = SubTaskDocumentSerializer(sub_task_documents, many=True).data
         rawData = []
+        print(columnDef)
         for task in subTaskDoc:
+            print(task)
             rawData.append(json.loads(task['value'].replace("'",'"')))
+        print(rawData)
         return JsonResponse({
             "info": serializer.data,
             "columnDefs":columnDef['columnDefs'],
@@ -108,20 +111,37 @@ class EditDocument(APIView):
         sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
         sub_task_serializer = SubTaskDocumentSerializer(sub_task_documents, many=True)
         sub_task_data = sub_task_serializer.data
-        for sub_task in sub_task_documents:
-            sub_task.delete()
-        for col in request.data['columnDefs']:
-            field = col["field"]
-            headerName= col["headerName"]
+        print(request.data["rawData"])
+        document.columnDefs = request.data["columnDefs"]
+        for raw in request.data["rawData"]:
+            createAccount(raw["id"], raw["userNameDisplay"])
+            user = User.objects.get(userName=raw["id"])
+            print(user.id, doc_id)
+            sub_task = SubTaskDocument.objects.filter(owner_id=doc_id,student_id=user.id)
+            if len(sub_task)==0:
+                subTask = SubTaskDocument.objects.create(student = user, owner = document, value = raw)
+                subTask.save()
+            else:
+                subTask = SubTaskDocument.objects.get(owner_id=doc_id,student_id=user.id)
+                subTask.value = raw
+                subTask.save()
+            
 
-            if field != 'id':
-                for data in request.data["rawData"]:
-                    print(data)
-                    student = data["id"]
-                    value = data[field]
-                    print(value)    
-                    subtask = SubTaskDocument.objects.create(field = field,title = headerName,student = student,owner = document,value = value)
-                    subtask.save()
+            print(sub_task)
+        # for sub_task in sub_task_documents:
+        #     sub_task.delete()
+        # for col in request.data['columnDefs']:
+        #     field = col["field"]
+        #     headerName= col["headerName"]
+
+        #     if field != 'id':
+        #         for data in request.data["rawData"]:
+        #             print(data)
+        #             student = data["id"]
+        #             value = data[field]
+        #             print(value)    
+        #             subtask = SubTaskDocument.objects.create(field = field,title = headerName,student = student,owner = document,value = value)
+        #             subtask.save()
         return JsonResponse({
             "status":"oke",
             "message": f"Deleted {len(sub_task_data)} subtasks for document with id {doc_id}."
