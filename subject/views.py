@@ -25,7 +25,7 @@ class SubjectCreate(APIView):
                 "status": 200,
                 "message": "create successfully"
             }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":"this subject exist", status:400}, status=status.HTTP_400_BAD_REQUEST)
 
         
 class SubjectSearch(APIView):

@@ -4,7 +4,7 @@ from .models import Classroom,Scheduler,Sessions
 class SchedulerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scheduler
-        fields = ['classroom_id', 'document', 'date', 'time_slot', 'user_applied']
+        fields = '__all__'
 class ClassroomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classroom

@@ -15,6 +15,7 @@ from rest_framework import permissions
 from django.db.models import Q
 from django.http import JsonResponse
 from .serializers import DocumentSerializer, SubTaskDocumentSerializer
+from subject.models import Subject
 
 
 from rest_framework.views import APIView
@@ -72,7 +73,11 @@ class createDocument(APIView):
     def post(self, request):
         # get user by userName = request.user
         user = User.objects.get(userName=request.user)
-        document =Document.objects.create(host=user,sharePermission ='onlyMe', columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}',classId = request.data.get('classId'))
+        sharePermission = request.data["sharePermission"]
+        if  sharePermission =="":
+            sharePermission = "onlyMe"
+        subject = Subject.objects.get(id=request.data["subjectId"])
+        document =Document.objects.create(host=user,sharePermission =sharePermission, columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}',classId = request.data.get('classId'), subject=subject)
         document.save()
         for col in request.data['rawData']:
             createAccount(col["id"], col["userNameDisplay"])
@@ -112,7 +117,8 @@ class EditDocument(APIView):
         sub_task_serializer = SubTaskDocumentSerializer(sub_task_documents, many=True)
         sub_task_data = sub_task_serializer.data
         print(request.data["rawData"])
-        document.columnDefs = request.data["columnDefs"]
+        document.columnDefs ='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}'
+        document.save()
         for raw in request.data["rawData"]:
             createAccount(raw["id"], raw["userNameDisplay"])
             user = User.objects.get(userName=raw["id"])
@@ -126,22 +132,6 @@ class EditDocument(APIView):
                 subTask.value = raw
                 subTask.save()
             
-
-            print(sub_task)
-        # for sub_task in sub_task_documents:
-        #     sub_task.delete()
-        # for col in request.data['columnDefs']:
-        #     field = col["field"]
-        #     headerName= col["headerName"]
-
-        #     if field != 'id':
-        #         for data in request.data["rawData"]:
-        #             print(data)
-        #             student = data["id"]
-        #             value = data[field]
-        #             print(value)    
-        #             subtask = SubTaskDocument.objects.create(field = field,title = headerName,student = student,owner = document,value = value)
-        #             subtask.save()
         return JsonResponse({
             "status":"oke",
             "message": f"Deleted {len(sub_task_data)} subtasks for document with id {doc_id}."

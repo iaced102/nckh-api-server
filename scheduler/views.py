@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from .models import Classroom , Scheduler , Sessions
 from .serializers import ClassroomSerializer,SchedulerSerializer,SessionsSerializer
 from document.models import Document
+from document.serializers import DocumentSerializer
+from subject.serializers import SubjectSerializer
+import json
 # Create your views here.
 
 class createScheduler(APIView):
@@ -32,8 +35,7 @@ class createScheduler(APIView):
             return Response({'message': 'Conflict with existing session'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             # Tạo sessions mới
-            print(request.data.get('classId'))
-            document = Document.objects.get(classId=request.data.get('classId'))
+            document = Document.objects.get(id=request.data.get('documentId'))
             scheduler = Scheduler.objects.create(classroom=classroom, document=document)
             for time in time_slot:
                 session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time)
@@ -44,12 +46,31 @@ class createScheduler(APIView):
             return Response({'message': 'Scheduler created successfully'}, status=status.HTTP_201_CREATED)
 class ViewSessions(APIView):
     def get(self, request):
-        start_date = request.data.get('start_date')
-        end_date = request.data.get('end_date')
-        user_id = request.data.get('user_id')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        user_id = request.GET.get('user_id')
+        classrooms = Classroom.objects.all()
+        schedulers = Scheduler.objects.all()
+        # document = Document.objects.all()
         try:
             sessions = Sessions.objects.filter(date__gte=start_date, date__lte=end_date, user_applied__contains = user_id)
             serializer = SessionsSerializer(sessions, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            result = []
+            for s in serializer.data:
+                value= json.loads(json.dumps(s))
+                for c in classrooms:
+                    # print(c.id)
+                    if s["classroom"]==c.id:
+                        value["classroom"] = ClassroomSerializer(c).data
+                for sc in schedulers:
+                    if s["scheduler"]==sc.id:
+                        value["scheduler"] = SchedulerSerializer(sc).data
+                        value["document"] = DocumentSerializer(sc.document).data
+                        value["document"]["subject"] = SubjectSerializer(sc.document.subject).data
+                
+                
+                # value["classroom"] = c.data
+                result.append(value)
+            return Response(result, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
