@@ -16,6 +16,8 @@ from django.db.models import Q
 from django.http import JsonResponse
 from .serializers import DocumentSerializer, SubTaskDocumentSerializer
 from subject.models import Subject
+from scheduler.models import Scheduler,Sessions
+from scheduler.serializers import SessionsSerializer
 
 
 from rest_framework.views import APIView
@@ -91,9 +93,11 @@ class createDocument(APIView):
         subject = Subject.objects.get(id=request.data["subjectId"])
         document =Document.objects.create(host=user,sharePermission =sharePermission, columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}',classId = request.data.get('classId'), subject=subject)
         document.save()
+        print(request.data['rawData'])
         for col in request.data['rawData']:
             createAccount(col["id"], col["userNameDisplay"])
             user = User.objects.get(userName=col["id"])
+            print(user)
             subTask = SubTaskDocument.objects.create(student = user, owner = document, value = col)
         return Response('asdjf;l')
 class detailDocument(APIView):
@@ -104,12 +108,21 @@ class detailDocument(APIView):
         columnDef = json.loads(serializer.data["columnDefs"].replace("'",'"'))
         subTaskDoc = SubTaskDocumentSerializer(sub_task_documents, many=True).data
         rawData = []
-        print(columnDef)
         for task in subTaskDoc:
-            print(task)
             rawData.append(json.loads(task['value'].replace("'",'"')))
-        print(rawData)
+        print(doc_id)
+        scheduler = Scheduler.objects.filter(document_id =doc_id)
+        session = []
+        print(scheduler)
+        for s in scheduler:
+            print(s.id)
+            se = Sessions.objects.filter(scheduler_id=s.id)
+            for ses in se:
+                session.append(SessionsSerializer(ses).data)
+        print(session)
         return JsonResponse({
+            "scheduler":list(scheduler.values()),
+            "session":session,
             "info": serializer.data,
             "columnDefs":columnDef['columnDefs'],
             "rawData":rawData,
@@ -148,3 +161,4 @@ class EditDocument(APIView):
             "status":"oke",
             "message": f"Deleted {len(sub_task_data)} subtasks for document with id {doc_id}."
         },status=status.HTTP_200_OK)
+    
