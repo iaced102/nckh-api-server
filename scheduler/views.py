@@ -17,6 +17,7 @@ class createScheduler(APIView):
         date = request.data.get('date')
         time_slot = request.data.get('time_slot')
         user_applied = request.data.get('user_applied')
+        note = request.data.get("note")
     # Kiểm tra lớp học đã tồn tại chưa, nếu chưa thì tạo mới
         classroom,created = Classroom.objects.get_or_create(room_id=classroom_id)
     # Kiểm tra Validate
@@ -32,7 +33,7 @@ class createScheduler(APIView):
             document = Document.objects.get(id=request.data.get('documentId'))
             scheduler = Scheduler.objects.create(classroom=classroom, document=document)
             for time in time_slot:
-                session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time)
+                session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time, note=note)
                 session.save()
             # session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time_slot)
             # session.save()
@@ -43,7 +44,7 @@ class createScheduler(APIView):
             document = Document.objects.get(id=request.data.get('documentId'))
             scheduler = Scheduler.objects.create(classroom=classroom, document=document)
             for time in time_slot:
-                session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time)
+                session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time, note=note)
                 session.save()
             # session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time_slot)
             # session.save()
@@ -71,11 +72,13 @@ class ViewSessions(APIView):
                     if s["scheduler"]==sc.id:
                         value["scheduler"] = SchedulerSerializer(sc).data
                         value["document"] = DocumentSerializer(sc.document).data
+                        print( SubjectSerializer(sc.document.subject).data)
                         value["document"]["subject"] = SubjectSerializer(sc.document.subject).data
                 
                 
                 # value["classroom"] = c.data
                 result.append(value)
+            print(result)
             return Response(result, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)

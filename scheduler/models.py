@@ -15,4 +15,5 @@ class Sessions(models.Model):
     user_applied = models.TextField()
     date = models.DateField()
     time_slot = models.IntegerField()
+    note= models.TextField(default="")
 

@@ -66,7 +66,6 @@ class getListDocumentForUser(APIView):
                 data.append(cloneDoc)
         for doc in data:
             subjectId = doc["subject"]
-            print("________________-")
             try:
                 subject = Subject.objects.get(id = subjectId)
                 doc["subject"] = getattr(subject, subject._meta.get_field("name").attname)
@@ -93,11 +92,9 @@ class createDocument(APIView):
         subject = Subject.objects.get(id=request.data["subjectId"])
         document =Document.objects.create(host=user,sharePermission =sharePermission, columnDefs='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}',classId = request.data.get('classId'), subject=subject)
         document.save()
-        print(request.data['rawData'])
         for col in request.data['rawData']:
             createAccount(col["id"], col["userNameDisplay"])
             user = User.objects.get(userName=col["id"])
-            print(user)
             subTask = SubTaskDocument.objects.create(student = user, owner = document, value = col)
         return Response('asdjf;l')
 class detailDocument(APIView):
@@ -110,16 +107,12 @@ class detailDocument(APIView):
         rawData = []
         for task in subTaskDoc:
             rawData.append(json.loads(task['value'].replace("'",'"')))
-        print(doc_id)
         scheduler = Scheduler.objects.filter(document_id =doc_id)
         session = []
-        print(scheduler)
         for s in scheduler:
-            print(s.id)
             se = Sessions.objects.filter(scheduler_id=s.id)
             for ses in se:
                 session.append(SessionsSerializer(ses).data)
-        print(session)
         return JsonResponse({
             "scheduler":list(scheduler.values()),
             "session":session,
@@ -141,13 +134,11 @@ class EditDocument(APIView):
         sub_task_documents = SubTaskDocument.objects.filter(owner_id=doc_id)
         sub_task_serializer = SubTaskDocumentSerializer(sub_task_documents, many=True)
         sub_task_data = sub_task_serializer.data
-        print(request.data["rawData"])
         document.columnDefs ='''{"columnDefs":'''+json.dumps(request.data["columnDefs"])+'}'
         document.save()
         for raw in request.data["rawData"]:
             createAccount(raw["id"], raw["userNameDisplay"])
             user = User.objects.get(userName=raw["id"])
-            print(user.id, doc_id)
             sub_task = SubTaskDocument.objects.filter(owner_id=doc_id,student_id=user.id)
             if len(sub_task)==0:
                 subTask = SubTaskDocument.objects.create(student = user, owner = document, value = raw)
