@@ -29,7 +29,7 @@ class UserRegisterView(APIView):
             serializer.save()
 
             return JsonResponse({
-                'message': 'Register successful!'
+                'message': 'Register successful!','status':200
             }, status=status.HTTP_201_CREATED)
 
         else:
@@ -76,12 +76,10 @@ class UserLoginView(APIView):
 
 class GetUserInfor(APIView):
     def get(self, request):
-        return JsonResponse(status=status.HTTP_200_OK,)
-        pass
+        users = User.objects.all()
         return JsonResponse({
-            'error_messages': 'error',
-            'view': {'request': request},
-            'error_code': 200
+            "status":200,
+            "data":list(users.values())
         }, status=status.HTTP_200_OK)
 #tự động tạo tài khoản cho sinh viên trong ds mk gửi lên nếu chưa có (username = msv , usernamedis = userndis)
 #istaff = false , 
@@ -90,3 +88,20 @@ class GetUserInfor(APIView):
 #         if not User.objects.filter(userName=id).exists():
 #             user = User.objects.create_user(id, password='1')
 #             user.save()
+
+
+class DeleteUser(APIView):
+    def post(self, request):
+        if not request.user.is_superuser:
+            return Response({
+                "status": 401,
+                "message": "you are not super user, don't have permission"
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        id = request.data["userId"]
+        user = User.objects.filter(id=id)
+        user.delete()
+        return Response({
+                "status": 200,
+                "message": "delete successful",
+                "data": user.values()
+            }, status=status.HTTP_201_CREATED)

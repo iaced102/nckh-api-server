@@ -25,14 +25,19 @@ class createScheduler(APIView):
             sessions = Sessions.objects.filter(classroom_id=classroom.id, date=date)
             for session in sessions:
                 for user in user_applied:
-                    print(user)
-                    print(session.user_applied)
-                    print(user in session.user_applied)
                     if user in session.user_applied:
                         return Response({'message': 'Sessions is not avaiable for user'}, status=status.HTTP_400_BAD_REQUEST)
                 if session.time_slot in time_slot :
                     return Response({'message': 'Conflict '}, status=status.HTTP_400_BAD_REQUEST)
-            return Response({'message': 'Conflict with existing session'}, status=status.HTTP_400_BAD_REQUEST)
+            document = Document.objects.get(id=request.data.get('documentId'))
+            scheduler = Scheduler.objects.create(classroom=classroom, document=document)
+            for time in time_slot:
+                session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time)
+                session.save()
+            # session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time_slot)
+            # session.save()
+            scheduler.save()
+            return Response({'message': 'Scheduler created successfully'}, status=status.HTTP_201_CREATED)
         else:
             # Tạo sessions mới
             document = Document.objects.get(id=request.data.get('documentId'))

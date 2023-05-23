@@ -62,6 +62,18 @@ class getListDocumentForUser(APIView):
                 cloneDoc["hostName"] = host.userNameDisplay
                 cloneDoc.pop('columnDefs')
                 data.append(cloneDoc)
+        for doc in data:
+            subjectId = doc["subject"]
+            print("________________-")
+            try:
+                subject = Subject.objects.get(id = subjectId)
+                doc["subject"] = getattr(subject, subject._meta.get_field("name").attname)
+            except Subject.DoesNotExist:
+                subject = None
+                doc["subject"] = ""
+            # subject = Subject.objects.get(id = subjectId)
+            # print(subject)
+            
         return JsonResponse({
                 'data': data,
             }, status=status.HTTP_200_OK)
