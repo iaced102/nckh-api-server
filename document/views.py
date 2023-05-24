@@ -14,6 +14,7 @@ from document.models import Document,SubTaskDocument
 from rest_framework import permissions
 from django.db.models import Q
 from django.http import JsonResponse
+from subject.serializers import SubjectCreateSerializer, SubjectSerializer
 from .serializers import DocumentSerializer, SubTaskDocumentSerializer
 from subject.models import Subject
 from scheduler.models import Scheduler,Sessions
@@ -113,13 +114,18 @@ class detailDocument(APIView):
             se = Sessions.objects.filter(scheduler_id=s.id)
             for ses in se:
                 session.append(SessionsSerializer(ses).data)
+        print("idddddddddddddddddddddddd")
+        print(serializer.data["subject"])
+        subject = SubjectSerializer(Subject.objects.get(id=serializer.data["subject"]))
+        print(subject)
         return JsonResponse({
             "scheduler":list(scheduler.values()),
             "session":session,
             "info": serializer.data,
             "columnDefs":columnDef['columnDefs'],
             "rawData":rawData,
-            "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data
+            "detail":SubTaskDocumentSerializer(sub_task_documents, many=True).data,
+            "subject":subject.data
         },status=status.HTTP_200_OK)
 
 

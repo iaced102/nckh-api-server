@@ -8,6 +8,8 @@ class Classroom(models.Model):
 class Scheduler(models.Model):
     classroom = models.ForeignKey(Classroom,related_name="scheduler", on_delete=models.CASCADE)
     document = models.ForeignKey(Document,related_name="scheduler", on_delete=models.CASCADE)
+    zoomURl = models.TextField(default="")
+    zoomPassword = models.TextField(default="")
 class Sessions(models.Model):
     # session = models.CharField(max_length=2,default='')
     classroom = models.ForeignKey(Classroom,related_name="sessions", on_delete=models.CASCADE)

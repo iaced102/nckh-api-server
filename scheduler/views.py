@@ -8,6 +8,7 @@ from document.models import Document
 from document.serializers import DocumentSerializer
 from subject.serializers import SubjectSerializer
 import json
+from base import createMeeting
 # Create your views here.
 
 class createScheduler(APIView):
@@ -18,6 +19,7 @@ class createScheduler(APIView):
         time_slot = request.data.get('time_slot')
         user_applied = request.data.get('user_applied')
         note = request.data.get("note")
+        isOnline = request.data.get("isOnline")
     # Kiểm tra lớp học đã tồn tại chưa, nếu chưa thì tạo mới
         classroom,created = Classroom.objects.get_or_create(room_id=classroom_id)
     # Kiểm tra Validate
@@ -48,6 +50,11 @@ class createScheduler(APIView):
                 session.save()
             # session = Sessions.objects.create(classroom=classroom, scheduler=scheduler, user_applied=user_applied, date=date, time_slot=time_slot)
             # session.save()
+            if isOnline:
+                res =createMeeting(classroom_id, date, note)
+                scheduler.zoomURl = res["join_url"]
+                scheduler.zoomPassword = res["passwords"]
+
             scheduler.save()
             return Response({'message': 'Scheduler created successfully'}, status=status.HTTP_201_CREATED)
 class ViewSessions(APIView):
